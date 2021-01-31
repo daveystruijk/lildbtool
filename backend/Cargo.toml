@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 rocket = "0.4.6"
+postgres = "0.15.2"
+dotenv = "0.15.0"

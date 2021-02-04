@@ -1,10 +1,12 @@
-use log::{debug, info, error};
+use log::{info};
 use std::path::{Path, PathBuf};
 use std::env;
 use dotenv::dotenv;
-use actix_web::{web, App, HttpServer, HttpRequest, Result, middleware::Logger};
+use actix_web::{web, App, HttpResponse, HttpServer, HttpRequest, Result, middleware::Logger};
 use actix_files::NamedFile;
-use sqlx::postgres::PgPool;
+use sqlx::{FromRow};
+use sqlx::postgres::{PgPool};
+use serde::{Serialize, Deserialize};
 
 
 /**
@@ -23,23 +25,29 @@ async fn files(req: HttpRequest) -> Result<NamedFile> {
  * API
  */
 
-// TODO:
-// - create side-table (on startup?)
-// 
+#[derive(FromRow, Serialize, Deserialize)]
+struct PgTable {
+    schemaname: String,
+    tablename: String
+}
 
-async fn tables(pool: web::Data<PgPool>) -> Result<()> {
-    let records = sqlx::query!(r#"
+async fn tables(pool: web::Data<PgPool>) -> HttpResponse {
+    let pg_tables = sqlx::query_as::<_, PgTable>(r#"
         SELECT *
         FROM pg_catalog.pg_tables
-        WHERE schemaname != 'pg_catalog' AND 
-        schemaname != 'information_schema';
-    "#).fetch_all(pool.get_ref()).await?;
+        WHERE schemaname != 'pg_catalog'
+        AND schemaname != 'information_schema'
+        AND schemaname != 'lildbtool';
+    "#).fetch_all(pool.get_ref()).await.unwrap();
 
-    for record in records {
-        println!("{:?}", record);
-    }
+    let table_names: Vec<String> = pg_tables.into_iter()
+        .map(|pg_table| pg_table.tablename).collect();
 
-    Ok(())
+    let json = serde_json::to_string(&table_names).unwrap();
+
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .body(json)
 }
 
 /**
@@ -51,8 +59,7 @@ async fn main() -> anyhow::Result<()> {
     env::set_var("RUST_LOG", "info,actix_web=info");
     env_logger::init();
 
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL not set.");
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL not set.");
 
     info!("Connecting to {}", database_url);
     let pool = PgPool::connect(&database_url).await?;

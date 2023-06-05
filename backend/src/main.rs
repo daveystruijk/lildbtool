@@ -22,8 +22,8 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     let app = Router::new()
-        .route("/tables", get(get_tables))
-        .route("/tables/:id", get(get_table_details))
+        .route("/api/tables", get(get_tables))
+        .route("/api/tables/:id", get(get_table_details))
         .layer(Extension(pg));
 
     axum::Server::bind(&listen_addr.parse().unwrap())

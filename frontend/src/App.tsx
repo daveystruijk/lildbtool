@@ -1,12 +1,12 @@
 import type { Component } from "solid-js";
-import Table from "./Table";
 
-import type { TableModel } from "../../backend/bindings/TableModel";
+import type { TableResult } from "../../backend/bindings/TableResult";
+import TableView from "./TableView";
 
 const App: Component = () => {
   return (
     <div>
-      <Table name="brand" />
+      <TableView table_name="brand" />
     </div>
   );
 };

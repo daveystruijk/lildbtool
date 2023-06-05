@@ -1,5 +1,5 @@
 services:
-  game-postgres:
+  lildbtool-postgres:
     container_name: lildbtool-postgres
     image: postgres:15
     volumes:

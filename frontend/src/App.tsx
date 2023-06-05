@@ -1,7 +1,14 @@
-import type { Component } from 'solid-js';
+import type { Component } from "solid-js";
+import Table from "./Table";
+
+import type { TableModel } from "../../backend/bindings/TableModel";
 
 const App: Component = () => {
-  return <p class="text-4xl text-green-700 text-center py-20">Hello tailwind!</p>;
+  return (
+    <div>
+      <Table name="brand" />
+    </div>
+  );
 };
 
 export default App;
